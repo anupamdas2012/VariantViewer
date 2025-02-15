@@ -18,36 +18,47 @@
         <p>Current Model: {{ currentModel }}</p>
       </div>
     </div>
-
-    <!-- Main Content Area -->
+    <!-- 3D Viewer -->
     <div class="content-container">
-      <div v-if="currentModel" class="content">
-        <h3>File loaded: {{ currentModel }}</h3>
-      </div>
-      <div v-else class="content">
-        <h3>No file selected</h3>
-      </div>
+      <canvas ref="renderCanvas"></canvas>
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
+import { Renderer } from '../renderer/Renderer'
 
 export default defineComponent({
   name: 'ModelViewer',
   setup() {
+    const renderCanvas = ref(null)
     const currentModel = ref(null)
+    let renderer = null
 
     const handleFileUpload = (event) => {
       const file = event.target.files[0]
       if (!file) return
       currentModel.value = file.name
     }
+    
+    // create renderer
+    onMounted(() => {
+      renderer = new Renderer(renderCanvas.value)
+      renderer.initialize()
+    })
+    
+    onUnmounted(() => {
+      if (renderer) {
+        renderer.dispose()
+      }
+    })
 
+    
     return {
       currentModel,
-      handleFileUpload
+      handleFileUpload,
+      renderCanvas
     }
   }
 })
@@ -73,11 +84,14 @@ export default defineComponent({
 .content-container {
   flex: 1;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
 }
+
+.content-container canvas {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}   
 
 .upload-section {
   display: flex;
@@ -113,4 +127,4 @@ export default defineComponent({
   text-align: center;
   color: #2c3e50;
 }
-</style>
+</style>../renderer/Renderer

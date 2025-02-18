@@ -10,10 +10,20 @@
         <input
           type="file"
           id="modelUpload"
+          accept=".glb"
           @change="handleFileUpload"
           class="file-input"
         >
       </div>
+      <div class="action-buttons">
+        <button 
+          @click="saveAsGLTF" 
+          class="upload-button"
+        >
+          Save as GLTF
+        </button>
+      </div>
+
       <div v-if="currentModel" class="model-info">
         <p>Current Model: {{ currentModel }}</p>
       </div>
@@ -36,10 +46,19 @@ export default defineComponent({
     const currentModel = ref(null)
     let renderer = null
 
-    const handleFileUpload = (event) => {
+    const handleFileUpload = async (event) => {
       const file = event.target.files[0]
       if (!file) return
-      currentModel.value = file.name
+      
+    //   error.value = false
+       const success = await renderer.loadGLB(file)
+      
+    //   if (success) {
+    //     currentModel.value = file.name
+    //   } else {
+    //     error.value = true
+    //     currentModel.value = null
+    //   }
     }
     
     // create renderer
@@ -115,6 +134,11 @@ export default defineComponent({
 
 .file-input {
   display: none;
+}
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .model-info {

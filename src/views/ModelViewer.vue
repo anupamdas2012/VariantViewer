@@ -23,7 +23,45 @@
           Save as GLTF
         </button>
       </div>
-
+      <!-- Color Input Section -->
+      <div class="color-section">
+        <h3>Colors</h3>
+        <div class="color-input">
+          <label for="color1">Color 1:</label>
+          <input
+            type="text"
+            id="color1"
+            v-model="colors.color1"
+            placeholder="#FFFFFF"
+          />
+        </div>
+        
+        <div class="color-input">
+          <label for="color2">Color 2:</label>
+          <input
+            type="text"
+            id="color2"
+            v-model="colors.color2"
+            placeholder="#FFFFFF"
+          />
+        </div>
+        
+        <div class="color-input">
+          <label for="color3">Color 3:</label>
+          <input
+            type="text"
+            id="color3"
+            v-model="colors.color3"
+            placeholder="#FFFFFF"
+          />
+        </div>
+        <button 
+          @click="handleUpdateModel" 
+          class="upload-button"
+        >
+          Update Model
+        </button>
+      </div>
       <div v-if="currentModel" class="model-info">
         <p>Current Model: {{ currentModel }}</p>
       </div>
@@ -42,34 +80,40 @@ import { Renderer } from '../renderer/Renderer'
 export default defineComponent({
   name: 'ModelViewer',
   setup() {
-    const renderCanvas = ref(null)
-    const currentModel = ref(null)
-    let renderer = null
+    const renderCanvas = ref(null);
+    const currentModel = ref(null);
+    const colors = ref({
+      color1: '#eb4034',
+      color2: '#02f713',
+      color3: '#0a16fa'
+    });
+    let renderer = null;
+
+    const handleUpdateModel = async () => {
+      renderer.updateModels({
+        color1: colors.value.color1,
+        color2: colors.value.color2,
+        color3: colors.value.color3
+        });
+    }
 
     const handleFileUpload = async (event) => {
       const file = event.target.files[0]
-      if (!file) return
+      if (!file) return;
       
     //   error.value = false
-       const success = await renderer.loadGLB(file)
-      
-    //   if (success) {
-    //     currentModel.value = file.name
-    //   } else {
-    //     error.value = true
-    //     currentModel.value = null
-    //   }
+      const success = await renderer.loadGLB(file);
     }
     
     // create renderer
     onMounted(() => {
-      renderer = new Renderer(renderCanvas.value)
-      renderer.initialize()
+      renderer = new Renderer(renderCanvas.value);
+      renderer.initialize();
     })
     
     onUnmounted(() => {
       if (renderer) {
-        renderer.dispose()
+        renderer.dispose();
       }
     })
 
@@ -77,7 +121,9 @@ export default defineComponent({
     return {
       currentModel,
       handleFileUpload,
-      renderCanvas
+      handleUpdateModel,
+      renderCanvas,
+      colors
     }
   }
 })
@@ -151,4 +197,29 @@ export default defineComponent({
   text-align: center;
   color: #2c3e50;
 }
+
+/* Color section styles */
+.color-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #34495e;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.color-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-bottom: 1px solid #42b983;
+  padding-bottom: 5px;
+}
+
+.color-input {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 </style>../renderer/Renderer

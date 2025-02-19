@@ -9,8 +9,8 @@ import {
   MeshBuilder,
   FilesInput,
 } from "@babylonjs/core";
-
-import { Inspector } from "@babylonjs/inspector";
+export * from "@babylonjs/loaders/glTF";
+import { GLTF2Export } from "@babylonjs/serializers";
 
 import { MaterialsVariants } from "./MaterialsVariants";
 
@@ -28,7 +28,6 @@ export class Renderer {
     // Initialize engine
     this.engine = new Engine(this.canvas, true);
     this.scene = new Scene(this.engine);
-    Inspector.Show(this.scene, {});
 
     this.assetsManager = new AssetsManager(this.scene);
     // Add camera
@@ -61,11 +60,84 @@ export class Renderer {
     window.addEventListener("resize", this.onResize);
   }
 
+  saveAsGltf() {
+    const exportDisabledNodes = false;
+    const exportCameras = false;
+    const exportLights = false;
+    const exportSkybox = false;
+
+    // Create export options
+    const exportOptions = {
+      shouldExportNode: (node) => {
+        // Skip disabled nodes
+        if (!exportDisabledNodes && !node.isEnabled()) {
+          return false;
+        }
+
+        // Skip cameras
+        if (
+          !exportCameras &&
+          node.getClassName().toLowerCase().includes("camera")
+        ) {
+          return false;
+        }
+
+        // Skip lights
+        if (
+          !exportLights &&
+          node.getClassName().toLowerCase().includes("light")
+        ) {
+          return false;
+        }
+
+        // Skip skybox (assuming it's a mesh with specific naming convention)
+        if (
+          !exportSkybox &&
+          node.name &&
+          node.name.toLowerCase().includes("skybox")
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    };
+
+    GLTF2Export.GLBAsync(this.scene, "exportedGLB", exportOptions).then(
+      (gltf) => {
+        gltf.downloadFiles();
+      }
+    );
+    // const saveProm = new Promise((resolve, reject) => {
+    //   GLTF2Export.GLBAsync(this.scene, "exportedGLB", exportOptions)
+    //     .then((glb) => resolve(glb))
+    //     .catch((error) => reject(error));
+    // });
+  }
   async updateModels(colors) {
     console.log("updating materials");
     this.varaints.updateMaterialColors(colors);
   }
+  async loadDemo() {
+    const assetContainer = await loadAssetContainerAsync(
+      "https://raw.githubusercontent.com/anupamdas2012/assets/32e24b482b458f84dee5863326b98a5a95baecc3/SimpleBox.glb",
+      this.scene,
+      {
+        pluginOptions: {},
+      }
+    );
+    assetContainer.addAllToScene();
+    if (this.rootNode) {
+      this.rootNode.dispose(false, true);
+    }
+    if (this.varaints) {
+      this.varaints.dispose();
+    }
+    this.rootNode = assetContainer.rootNodes[0];
+    this.varaints = new MaterialsVariants(this.scene, this.rootNode);
+  }
 
+  async setupVariants() {}
   async loadGLB(file) {
     let filename = file.name;
     let blob = new Blob([event.target.files[0]]);

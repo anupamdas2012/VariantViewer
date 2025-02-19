@@ -17,7 +17,7 @@
       </div>
       <div class="action-buttons">
         <button 
-          @click="saveAsGLTF" 
+          @click="saveAsGltf" 
           class="upload-button"
         >
           Save as GLTF
@@ -105,6 +105,10 @@ export default defineComponent({
       const success = await renderer.loadGLB(file);
     }
     
+    const saveAsGltf = async () => {
+      renderer.saveAsGltf();
+    }
+
     // create renderer
     onMounted(() => {
       renderer = new Renderer(renderCanvas.value);
@@ -123,7 +127,8 @@ export default defineComponent({
       handleFileUpload,
       handleUpdateModel,
       renderCanvas,
-      colors
+      colors,
+      saveAsGltf
     }
   }
 })

@@ -27,3 +27,12 @@ npm run dev
 ```sh
 npm run build
 ```
+
+testing:
+use assets: https://github.com/anupamdas2012/testAssets
+
+1. open app
+2. upload glb (use assets from https://github.com/anupamdas2012/testAssets)
+3. change colors of each variant. Click update model.
+4. use drop down selector to switch variants
+5. click export GLTF to export asset with proper variant extension

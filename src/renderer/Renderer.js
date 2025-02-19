@@ -219,7 +219,7 @@ export class Renderer {
             this.rootNode
           );
           this.materialsVariants.updateVariantMetadata();
-          Inspector.Show(this.scene, {});
+          //Inspector.Show(this.scene, {});
           // Resolve with true on success
           resolve(true);
         };

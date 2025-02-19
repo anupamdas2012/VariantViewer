@@ -30,6 +30,9 @@ export class MaterialsVariants {
       variants: {},
     });
 
+    if (Object.keys(extensionMetadata.variants).length > 0) {
+      return;
+    }
     // Store the original material.
     extensionMetadata.original.push({
       mesh: babylonMesh,

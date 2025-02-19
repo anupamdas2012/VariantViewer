@@ -2,10 +2,9 @@
   <div class="viewer-container">
     <!-- Sidebar -->
     <div class="sidebar">
-      <h2>Model Viewer</h2>
       <div class="upload-section">
         <label for="modelUpload" class="upload-button">
-          Upload File
+          Upload Model
         </label>
         <input
           type="file"
@@ -18,7 +17,7 @@
 
       <!-- Color Input Section -->
       <div class="color-section">
-        <h3>Colors</h3>
+        <h3>Variants</h3>
         <div class="color-input">
           <label for="color1">Color 1:</label>
           <input
@@ -52,7 +51,7 @@
           @click="handleUpdateModel" 
           class="upload-button"
         >
-          Update Model
+          Update Variants
         </button>
       </div>
       <!-- Material Variants Dropdown -->
@@ -143,7 +142,7 @@ export default defineComponent({
         renderer.applyMaterialVariant(selectedVariant.value);
       }
     }
-    
+
     const saveAsGltf = async () => {
       renderer.saveAsGltf();
     }
@@ -212,7 +211,7 @@ export default defineComponent({
 }
 
 .upload-button {
-  background-color: #42b983;
+  background-color: #638680;
   color: white;
   padding: 10px 15px;
   border-radius: 4px;
@@ -259,7 +258,7 @@ export default defineComponent({
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 16px;
-  border-bottom: 1px solid #42b983;
+  border-bottom: 1px solid #498168;
   padding-bottom: 5px;
 }
 

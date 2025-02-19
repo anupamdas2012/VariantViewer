@@ -15,14 +15,7 @@
           class="file-input"
         >
       </div>
-      <div class="action-buttons">
-        <button 
-          @click="saveAsGltf" 
-          class="upload-button"
-        >
-          Save as GLTF
-        </button>
-      </div>
+
       <!-- Color Input Section -->
       <div class="color-section">
         <h3>Colors</h3>
@@ -62,6 +55,35 @@
           Update Model
         </button>
       </div>
+      <!-- Material Variants Dropdown -->
+      <div class="variants-section" v-if="materialVariants.length > 0">
+        <h3>Material Variants</h3>
+        <div class="variant-selector">
+          <label for="variantSelect">Select Variant:</label>
+          <select 
+            id="variantSelect" 
+            v-model="selectedVariant"
+            @change="applyVariant"
+            class="variant-dropdown"
+          >
+            <option 
+              v-for="variant in materialVariants" 
+              :key="variant" 
+              :value="variant"
+            >
+              {{ variant }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button 
+          @click="saveAsGltf" 
+          class="upload-button"
+        >
+          Save as GLTF
+        </button>
+      </div>
       <div v-if="currentModel" class="model-info">
         <p>Current Model: {{ currentModel }}</p>
       </div>
@@ -87,6 +109,9 @@ export default defineComponent({
       color2: '#02f713',
       color3: '#0a16fa'
     });
+    const materialVariants = ref([]);
+    const selectedVariant = ref('');
+
     let renderer = null;
 
     const handleUpdateModel = async () => {
@@ -100,9 +125,23 @@ export default defineComponent({
     const handleFileUpload = async (event) => {
       const file = event.target.files[0]
       if (!file) return;
-      
-    //   error.value = false
       const success = await renderer.loadGLB(file);
+      if(success)
+      {
+        const variants = renderer.getMaterialVariants();  
+        if (variants && variants.length > 0) {
+          materialVariants.value = variants;
+          selectedVariant.value = variants[0]; // Select first by default
+        } else {
+          materialVariants.value = [];
+          selectedVariant.value = '';
+        }
+      }
+    }
+    const applyVariant = () => {
+      if (selectedVariant.value && renderer) {
+        renderer.applyMaterialVariant(selectedVariant.value);
+      }
     }
     
     const saveAsGltf = async () => {
@@ -128,7 +167,10 @@ export default defineComponent({
       handleUpdateModel,
       renderCanvas,
       colors,
-      saveAsGltf
+      saveAsGltf,
+      materialVariants,
+      selectedVariant,
+      applyVariant
     }
   }
 })
@@ -225,6 +267,45 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+/* Variant selector styles */
+.variants-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #34495e;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.variants-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-bottom: 1px solid #42b983;
+  padding-bottom: 5px;
+}
+
+.variant-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variant-dropdown {
+  background-color: #2c3e50;
+  color: white;
+  border: 1px solid #42b983;
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.variant-dropdown:focus {
+  outline: none;
+  border-color: #3aa876;
 }
 
 </style>../renderer/Renderer

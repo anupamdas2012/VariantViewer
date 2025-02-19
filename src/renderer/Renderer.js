@@ -11,6 +11,7 @@ import {
 } from "@babylonjs/core";
 export * from "@babylonjs/loaders/glTF";
 import { GLTF2Export } from "@babylonjs/serializers";
+import { Inspector } from "@babylonjs/inspector";
 
 import { MaterialsVariants } from "./MaterialsVariants";
 
@@ -20,7 +21,7 @@ export class Renderer {
     this.engine = null;
     this.scene = null;
     this.assetsManager = null;
-    this.varaints = null;
+    this.materialsVariants = null;
     this.rootNode = null;
   }
 
@@ -116,8 +117,61 @@ export class Renderer {
   }
   async updateModels(colors) {
     console.log("updating materials");
-    this.varaints.updateMaterialColors(colors);
+    this.materialsVariants.updateMaterialColors(colors);
   }
+
+  applyMaterialVariant(variantName) {
+    if (!this.scene || !this.materialsVariants) {
+      return false;
+    }
+
+    const root = this.materialsVariants.root;
+    if (!root || !root._internalMetadata || !root._internalMetadata.gltf) {
+      return false;
+    }
+
+    const variantsMetadata =
+      root._internalMetadata.gltf["KHR_materials_variants"];
+    if (!variantsMetadata || !variantsMetadata.variants) {
+      return false;
+    }
+
+    // Apply the selected variant
+    const variantData = variantsMetadata.variants[variantName];
+    if (variantData) {
+      variantData.forEach((item) => {
+        item.mesh.material = item.material;
+      });
+
+      // Store last selected
+      variantsMetadata.lastSelected = variantName;
+      return true;
+    }
+
+    return false;
+  }
+
+  getMaterialVariants() {
+    if (!this.scene || !this.materialsVariants) {
+      return [];
+    }
+
+    // Extract variant names from materialsVariants
+    const root = this.materialsVariants.root;
+    if (!root || !root._internalMetadata || !root._internalMetadata.gltf) {
+      return [];
+    }
+
+    const variantsMetadata =
+      root._internalMetadata.gltf["KHR_materials_variants"];
+    if (!variantsMetadata || !variantsMetadata.variants) {
+      return [];
+    }
+
+    // Return array of variant names
+    return Object.keys(variantsMetadata.variants);
+  }
+
   async loadDemo() {
     const assetContainer = await loadAssetContainerAsync(
       "https://raw.githubusercontent.com/anupamdas2012/assets/32e24b482b458f84dee5863326b98a5a95baecc3/SimpleBox.glb",
@@ -130,38 +184,51 @@ export class Renderer {
     if (this.rootNode) {
       this.rootNode.dispose(false, true);
     }
-    if (this.varaints) {
-      this.varaints.dispose();
+    if (this.materialsVariants) {
+      this.materialsVariants.dispose();
     }
     this.rootNode = assetContainer.rootNodes[0];
-    this.varaints = new MaterialsVariants(this.scene, this.rootNode);
+    this.materialsVariants = new MaterialsVariants(this.scene, this.rootNode);
   }
 
   async setupVariants() {}
-  async loadGLB(file) {
-    let filename = file.name;
-    let blob = new Blob([event.target.files[0]]);
-    console.log(file.size);
-    FilesInput.FilesToLoad[filename.toLowerCase()] = blob;
+  loadGLB(file) {
+    return new Promise((resolve, reject) => {
+      try {
+        let filename = file.name;
+        let blob = new Blob([event.target.files[0]]);
+        console.log(file.size);
+        FilesInput.FilesToLoad[filename.toLowerCase()] = blob;
 
-    const task = this.assetsManager.addMeshTask(
-      filename,
-      "",
-      "file:",
-      filename
-    );
-    task.onSuccess = (task) => {
-      if (this.rootNode) {
-        this.rootNode.dispose(false, true);
+        const task = this.assetsManager.addMeshTask(
+          filename,
+          "",
+          "file:",
+          filename
+        );
+        task.onSuccess = (task) => {
+          if (this.rootNode) {
+            this.rootNode.dispose(false, true);
+          }
+          if (this.varaints) {
+            this.varaints.dispose();
+          }
+          this.rootNode = task.loadedMeshes[0];
+          this.materialsVariants = new MaterialsVariants(
+            this.scene,
+            this.rootNode
+          );
+          this.materialsVariants.updateVariantMetadata();
+          Inspector.Show(this.scene, {});
+          // Resolve with true on success
+          resolve(true);
+        };
+        this.assetsManager.load();
+      } catch (error) {
+        console.error("Exception in loadGLB:", error);
+        resolve(false); // Resolve with false on exception
       }
-      if (this.varaints) {
-        this.varaints.dispose();
-      }
-      this.rootNode = task.loadedMeshes[0];
-      this.varaints = new MaterialsVariants(this.scene, this.rootNode);
-    };
-
-    this.assetsManager.load();
+    });
   }
   // called on window resize
   onResize = () => {
